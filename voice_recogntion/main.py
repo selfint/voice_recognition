@@ -10,9 +10,7 @@ def main():
     audio_queue = deque()
 
     with tempfile.TemporaryDirectory() as audio_dir:
-        audio_path = Path(audio_dir)
-
-        sr = SoxRecorder(audio_path, audio_queue)
+        sr = SoxRecorder(Path(audio_dir), audio_queue)
 
         sr.start_watchdog()
         sr.start_sox_subprocess()
