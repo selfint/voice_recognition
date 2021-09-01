@@ -13,7 +13,7 @@ SOX_RECORD_CMD = (
 def _create_sox_record_cmd(
     record_dir: Path,
     audio_filename_template: str,
-    duration: int,
+    duration: float,
 ) -> str:
     """Create SOX record command.
 
@@ -21,7 +21,7 @@ def _create_sox_record_cmd(
         record_dir (Path): Path to directory for audio files
         audio_filename_template (str): Base template for file names, numbers will be
         inserted before the filetype suffix
-        duration (int): Length (in seconds) of each audio file
+        duration (float): Length (in seconds) of each audio file
 
     Returns:
         str: Sox command to continuosly generate audio files in a directory
