@@ -8,7 +8,10 @@ import numpy as np
 import wave
 
 from voice_recogntion.sox_recorder import SoxRecorder
+from voice_recogntion.speech_to_text import SpeechToText
 
+MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
+SCORER = Path("models/english/deepspeech-0.9.3-models.scorer")
 
 def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
     """Start the SoxRecorder.
@@ -44,12 +47,25 @@ def load_wav(wav_file: Path) -> np.ndarray:
 
 
 def main():
-    audio_queue = deque()
+    audio_files_queue = deque()
+    audio_buffers_queue = deque()
+    text_queue = deque()
+    stt = SpeechToText(MODEL, SCORER)
 
     with tempfile.TemporaryDirectory() as audio_dir:
-        sr = start_sox(Path(audio_dir), audio_queue)
+        sr = start_sox(Path(audio_dir), audio_files_queue)
         try:
             while True:
+                if audio_files_queue:
+                    audio_buffer = load_wav(audio_files_queue.pop())
+
+                    audio_buffers_queue.append(audio_buffer)
+
+                stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue)
+
+                if text_queue:
+                    print(text_queue.pop())
+
                 time.sleep(1)
 
         except KeyboardInterrupt:
