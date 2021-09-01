@@ -20,7 +20,7 @@ def _create_sox_record_cmd(
     Args:
         record_dir (Path): Path to directory for audio files
         audio_filename_template (str): Base template for file names, numbers will be
-                                       inserted before the filetype suffix
+        inserted before the filetype suffix
         duration (int): Length (in seconds) of each audio file
 
     Returns:
