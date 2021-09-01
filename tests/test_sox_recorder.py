@@ -1,4 +1,7 @@
 import subprocess
+import tempfile
+import time
+from collections import deque
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -36,3 +39,23 @@ def _mock_recording(data_dir: Path):
     while True:
         filename = f"mock_data{counter:05}.wav"
         (data_dir / filename).touch()
+
+
+def test_sox_recorder_watchdog():
+    with tempfile.TemporaryDirectory() as tempdir:
+        data_dir = Path(tempdir) / "data"
+        data_dir.mkdir()
+        output_queue = deque()
+
+        sr = SoxRecorder(data_dir, output_queue)
+        sr.start_watchdog()
+
+        newfile = data_dir / "file1.wav"
+        newfile.touch()
+        time.sleep(0.01)
+        assert list(output_queue) == [newfile]
+
+        newfile2 = data_dir / "file2.wav"
+        newfile2.touch()
+        time.sleep(0.01)
+        assert list(output_queue) == [newfile, newfile2]
