@@ -87,7 +87,6 @@ class SoxRecorder:
         self.start_sox_subprocess()
         self.start_watchdog()
 
-
     def stop(self):
         """
         Stop all SoxRecorder activity

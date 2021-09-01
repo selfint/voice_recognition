@@ -1,5 +1,5 @@
-from typing import Deque
 from pathlib import Path
+from typing import Deque
 
 import numpy as np
 from deepspeech import Model
@@ -56,7 +56,3 @@ class SpeechToText:
         if input_queue:
             audio_buffer = input_queue.pop()
             self.stt_to_queue(audio_buffer, output_queue)
-
-
-
-

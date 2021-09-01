@@ -1,17 +1,18 @@
 import tempfile
 import time
+import wave
 from collections import deque
 from pathlib import Path
 from typing import Deque
 
 import numpy as np
-import wave
 
 from voice_recogntion.sox_recorder import SoxRecorder
 from voice_recogntion.speech_to_text import SpeechToText
 
 MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
 SCORER = Path("models/english/deepspeech-0.9.3-models.scorer")
+
 
 def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
     """Start the SoxRecorder.
@@ -24,6 +25,7 @@ def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
     sr.start()
 
     return sr
+
 
 def load_wav(wav_file: Path) -> np.ndarray:
     """Load .wav file into a numpy array

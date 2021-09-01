@@ -14,6 +14,7 @@ def test_load_model():
 
     assert stt.model is not None
 
+
 def test_speech_to_text():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
 
@@ -22,6 +23,7 @@ def test_speech_to_text():
 
     # stt should not recognize a word, but should still work
     assert stt.stt(audio_buffer) == ""
+
 
 def test_speech_to_text_to_queue():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
@@ -32,6 +34,7 @@ def test_speech_to_text_to_queue():
     stt.stt_to_queue(audio_buffer, queue)
 
     assert list(queue) == [""]
+
 
 def test_speech_to_text_from_queue_to_queue():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
@@ -45,4 +48,3 @@ def test_speech_to_text_from_queue_to_queue():
     stt.stt_from_queue_to_queue(input_queue, output_queue)
 
     assert list(output_queue) == [""]
-
