@@ -33,7 +33,10 @@ def load_wav(wav_file: Path) -> np.ndarray:
     """
 
     # load .wav file data
-    fin = wave.open(str(wav_file.resolve()), "rb")
+    try:
+        fin = wave.open(str(wav_file.resolve()), "rb")
+    except EOFError:
+        return np.zeros(16000, np.int16)
     audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
     fin.close()
 
