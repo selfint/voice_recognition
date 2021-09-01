@@ -35,5 +35,28 @@ class SpeechToText:
 
         output_queue.append(self.stt(audio_buffer))
 
+    def stt_from_queue_to_queue(
+        self,
+        input_queue: Deque[np.ndarray],
+        output_queue: Deque[str],
+    ):
+        """Pipe recognized text from audio buffer in the input queue to the output queue
+
+        Pop an audio buffer from the `input_queue`. Then, perform STT on the
+        popped audio buffer, push the recognized text to the `output_queue`.
+
+        If `input_queue` is empty, nothing is done.
+
+        Args:
+            input_queue (Deque[numpy.ndarray]): Queue to pop audio buffer from
+            output_queue (Deque[str]): Queue to push text to
+        """
+
+        # make sure input_queue is not empty
+        if input_queue:
+            audio_buffer = input_queue.pop()
+            self.stt_to_queue(audio_buffer, output_queue)
+
+
 
 

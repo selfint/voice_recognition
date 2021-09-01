@@ -33,3 +33,16 @@ def test_speech_to_text_to_queue():
 
     assert list(queue) == [""]
 
+def test_speech_to_text_from_queue_to_queue():
+    stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
+    input_queue = deque()
+    output_queue = deque()
+
+    audio_buffer = np.zeros(16000, dtype=np.int16)
+
+    input_queue.append(audio_buffer)
+
+    stt.stt_from_queue_to_queue(input_queue, output_queue)
+
+    assert list(output_queue) == [""]
+
