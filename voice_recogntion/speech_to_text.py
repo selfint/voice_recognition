@@ -30,3 +30,16 @@ class SpeechToText:
 
         return audio
 
+    def stt(self, audio_buffer: np.ndarray) -> str:
+        """Run model on audio buffer
+
+        Args:
+            audio (np.ndarray): Audio buffer to run STT on
+
+        Returns:
+            str: Text recognized in audio buffer
+        """
+
+        return self.model.stt(audio_buffer)
+
+

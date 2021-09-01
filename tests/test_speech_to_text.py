@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import numpy as np
+
 from voice_recogntion.speech_to_text import SpeechToText
 
 MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
@@ -10,3 +12,12 @@ def test_load_model():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
 
     assert stt.model is not None
+
+def test_speech_to_text():
+    stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
+
+    # create a buffer of one second of silence (with 16000 sample rate)
+    audio_buffer = np.zeros(16000, dtype=np.int16)
+
+    # stt should not recognize a word, but should still work
+    assert stt.stt(audio_buffer) == ""
