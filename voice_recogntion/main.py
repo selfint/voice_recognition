@@ -56,5 +56,11 @@ def main():
             sr.stop()
 
 
+def recognize():
+    stt = SpeechToText(MODEL, SCORER)
+    audio = load_wav(Path("a.wav"))
+    print(stt.stt(audio))
+
+
 if __name__ == "__main__":
     main()
