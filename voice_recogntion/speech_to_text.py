@@ -1,3 +1,4 @@
+from typing import Deque
 import wave
 from pathlib import Path
 
@@ -41,5 +42,16 @@ class SpeechToText:
         """
 
         return self.model.stt(audio_buffer)
+
+    def stt_to_queue(self, audio_buffer: np.ndarray, output_queue: Deque[str]):
+        """Run model on audio buffer and push text to output queue
+
+        Args:
+            audio (np.ndarray): Audio buffer to run STT on
+            output_queue (Deque[str]): Queue to push text to
+        """
+
+        output_queue.append(self.stt(audio_buffer))
+
 
 

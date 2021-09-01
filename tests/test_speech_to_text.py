@@ -1,3 +1,4 @@
+from collections import deque
 from pathlib import Path
 
 import numpy as np
@@ -21,3 +22,14 @@ def test_speech_to_text():
 
     # stt should not recognize a word, but should still work
     assert stt.stt(audio_buffer) == ""
+
+def test_speech_to_text_to_queue():
+    stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
+    queue = deque()
+
+    audio_buffer = np.zeros(16000, dtype=np.int16)
+
+    stt.stt_to_queue(audio_buffer, queue)
+
+    assert list(queue) == [""]
+
