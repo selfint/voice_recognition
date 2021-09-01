@@ -46,3 +46,8 @@ class SoxRecorder:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
+
+    def stop_sox_subprocess(self):
+        """Stop the sox recording subprocess"""
+
+        self._record_process.terminate()
