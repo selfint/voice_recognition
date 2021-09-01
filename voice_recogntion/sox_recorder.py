@@ -24,6 +24,8 @@ def _create_sox_record_cmd(
         str: Sox command to continuosly generate audio files in a directory
     """
 
+    return SOX_RECORD_CMD.format(record_dir, audio_filename_template, duration)
+
 
 class SoxRecorder:
     def __init__(self, data_dir: Path) -> None:
