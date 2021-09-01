@@ -2,8 +2,8 @@ import subprocess
 from pathlib import Path
 from typing import Deque, Optional
 
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
 SOX_RECORD_CMD = (
     "rec -r 16000 -c 1 -p | sox -p -b 16 {}/{} trim 0 {} : newfile : restart"
