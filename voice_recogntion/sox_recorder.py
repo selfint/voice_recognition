@@ -6,7 +6,9 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 SOX_RECORD_CMD = (
-    "rec -r 16000 -c 1 -p | sox -p -b 16 {}/{} trim 0 {} : newfile : restart"
+    "rec -r 16000 -c 1 -e signed-integer "
+    "--endian little --compression 0.0 --no-dither -p "
+    "| sox -p -b 16 {}/{} trim 0 {} : newfile : restart"
 )
 
 
