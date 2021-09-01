@@ -2,7 +2,6 @@ from pathlib import Path
 import subprocess
 from voice_recogntion.sox_recorder import SoxRecorder
 from unittest.mock import patch, MagicMock
-from pyfakefs.fake_filesystem import FakeFilesystem
 
 
 @patch("subprocess.Popen")
@@ -36,7 +35,3 @@ def _mock_recording(data_dir: Path):
     while True:
         filename = f"mock_data{counter:05}.wav"
         (data_dir / filename).touch()
-
-
-def test_fake_filesystem(fs: FakeFilesystem):
-    assert fs is not None
