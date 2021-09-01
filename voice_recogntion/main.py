@@ -4,6 +4,9 @@ from collections import deque
 from pathlib import Path
 from typing import Deque
 
+import numpy as np
+import wave
+
 from voice_recogntion.sox_recorder import SoxRecorder
 
 
@@ -18,6 +21,23 @@ def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
     sr.start()
 
     return sr
+
+def load_wav(wav_file: Path) -> np.ndarray:
+    """Load .wav file into a numpy array
+
+    Args:
+        wav_file (Path): .wav file to load into numpy array
+
+    Returns:
+        np.array: .wav file content as a numpy array
+    """
+
+    # load .wav file data
+    fin = wave.open(str(wav_file.resolve()), "rb")
+    audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+    fin.close()
+
+    return audio
 
 
 def main():
