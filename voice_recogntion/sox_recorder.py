@@ -1,6 +1,6 @@
+import subprocess
 from pathlib import Path
 from typing import Optional
-import subprocess
 
 SOX_RECORD_CMD = (
     "rec -r 16000 -c 1 -p | sox -p -b 16 {}/{} trim 0 {} : newfile : restart"

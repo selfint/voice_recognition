@@ -3,17 +3,16 @@
 from __future__ import absolute_import, division, print_function
 
 import argparse
-import numpy as np
+import json
 import shlex
 import subprocess
 import sys
 import wave
-import json
-
-from deepspeech import Model, version
+from pipes import quote
 from timeit import default_timer as timer
 
-from pipes import quote
+import numpy as np
+from deepspeech import Model, version
 
 
 def convert_samplerate(audio_path, desired_sample_rate):

@@ -1,7 +1,8 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 from voice_recogntion.sox_recorder import SoxRecorder
-from unittest.mock import patch, MagicMock
 
 
 @patch("subprocess.Popen")
