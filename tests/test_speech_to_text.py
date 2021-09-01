@@ -1,6 +1,6 @@
 from pathlib import Path
-from voice_recogntion.speech_to_text import SpeechToText
 
+from voice_recogntion.speech_to_text import SpeechToText
 
 MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
 SCORER = Path("models/english/deepspeech-0.9.3-models.scorer")

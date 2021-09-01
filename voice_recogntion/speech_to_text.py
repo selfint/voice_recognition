@@ -1,7 +1,8 @@
-from pathlib import Path
-from deepspeech import Model
-import numpy as np
 import wave
+from pathlib import Path
+
+import numpy as np
+from deepspeech import Model
 
 
 class SpeechToText:

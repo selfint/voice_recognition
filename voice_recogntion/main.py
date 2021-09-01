@@ -1,8 +1,9 @@
-from collections import deque
-from pathlib import Path
-from voice_recogntion.sox_recorder import SoxRecorder
 import tempfile
 import time
+from collections import deque
+from pathlib import Path
+
+from voice_recogntion.sox_recorder import SoxRecorder
 
 
 def main():
