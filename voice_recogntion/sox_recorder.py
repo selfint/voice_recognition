@@ -77,6 +77,28 @@ class SoxRecorder:
         self._watchdog.stop()
         self._watchdog.join()
 
+    def start(self):
+        """Start all SoxRecorder activity
+
+        Start generating audio files in the ``data_dir``, start a watchdog on
+        that directory and push Path of created files to the ``output_queue``.
+        """
+
+        self.start_sox_subprocess()
+        self.start_watchdog()
+
+
+    def stop(self):
+        """
+        Stop all SoxRecorder activity
+
+        Stop generating audio files in the ``data_dir`` and stop the watchdog
+        on that directory.
+        """
+
+        self.stop_sox_subprocess()
+        self.stop_watchdog()
+
 
 class OnCreateHandler(FileSystemEventHandler):
     def __init__(self, output_queue: Deque) -> None:
