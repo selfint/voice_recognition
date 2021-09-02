@@ -25,6 +25,14 @@ def test_speech_to_text():
     assert stt.stt(audio_buffer) == ""
 
 
+def test_multiple_audio_buffers():
+    stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
+
+    audio_buffers = [np.zeros(16000, dtype=np.int16), np.zeros(16000, dtype=np.int16)]
+
+    assert stt.stt(audio_buffers) == ""
+
+
 def test_speech_to_text_to_queue():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
     queue = deque()

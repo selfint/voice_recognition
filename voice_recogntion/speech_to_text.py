@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Deque
+from typing import Deque, List, Union
 
 import numpy as np
 from deepspeech import Model
@@ -13,7 +13,7 @@ class SpeechToText:
         print(f"Loading scorer from {str(scorer_path)!r}")
         self.model.enableExternalScorer(scorer_path=str(scorer_path.resolve()))
 
-    def stt(self, audio_buffer: np.ndarray) -> str:
+    def stt(self, audio_buffer: Union[np.ndarray, List[np.ndarray]]) -> str:
         """Run model on audio buffer
 
         Args:
@@ -23,7 +23,17 @@ class SpeechToText:
             str: Text recognized in audio buffer
         """
 
-        return self.model.stt(audio_buffer)
+        if isinstance(audio_buffer, list):
+
+            # merge all audio buffers into a stream
+            stream = self.model.createStream()
+            for buffer in audio_buffer:
+                stream.feedAudioContent(buffer)
+
+            return stream.finishStream()
+
+        elif isinstance(audio_buffer, np.ndarray):
+            return self.model.stt(audio_buffer)
 
     def stt_to_queue(self, audio_buffer: np.ndarray, output_queue: Deque[str]):
         """Run model on audio buffer and push text to output queue
