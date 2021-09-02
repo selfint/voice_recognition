@@ -14,7 +14,7 @@ class SpeechToText:
         self.model.enableExternalScorer(scorer_path=str(scorer_path.resolve()))
 
     def stt(self, audio_buffer: Union[np.ndarray, List[np.ndarray]]) -> str:
-        """Run model on audio buffer
+        """Recognize text in audio buffer.
 
         Args:
             audio_buffer (np.ndarray): Audio buffer to run STT on
@@ -35,7 +35,11 @@ class SpeechToText:
         elif isinstance(audio_buffer, np.ndarray):
             return self.model.stt(audio_buffer)
 
-    def stt_to_queue(self, audio_buffer: np.ndarray, output_queue: Deque[str]):
+    def stt_to_queue(
+        self,
+        audio_buffer: Union[np.ndarray, List[np.ndarray]],
+        output_queue: Deque[str]
+    ):
         """Run model on audio buffer and push text to output queue
 
         Args:
