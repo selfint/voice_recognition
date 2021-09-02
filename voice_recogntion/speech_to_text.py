@@ -54,6 +54,7 @@ class SpeechToText:
         input_queue: Deque[np.ndarray],
         output_queue: Deque[str],
         greedy: bool = False,
+        pop: bool = True,
     ):
         """Pipe recognized text from audio buffer in the input queue to the output queue
 
@@ -65,20 +66,28 @@ class SpeechToText:
         If `greedy` is set then the entire input queue is consumed,
         if not then only the first element in the queue is consumed.
 
+        If 'pop` is set then values are removed from the input queue.
+
         Args:
             input_queue (Deque[numpy.ndarray]): Queue to pop audio buffer from
             output_queue (Deque[str]): Queue to push text to
             greedy (bool): Whether to consume entire queue or only the first element
+            pop (bool): Whether to remove elements from the input queue
         """
 
         # make sure input_queue is not empty
         if input_queue:
-            audio_buffer: Union[np.ndarray, List[np.ndarray]] = input_queue.pop()
+            audio_buffer: Union[np.ndarray, List[np.ndarray]]
 
-            if greedy:
-                audio_buffer = [audio_buffer]
-
+            if greedy and pop:
+                audio_buffer = []
                 while input_queue:
                     audio_buffer.append(input_queue.pop())
+            elif greedy and not pop:
+                audio_buffer = list(input_queue)
+            elif not greedy and pop:
+                audio_buffer = input_queue.pop()
+            elif not greedy and not pop:
+                audio_buffer = input_queue[-1]
 
             self.stt_to_queue(audio_buffer, output_queue)
