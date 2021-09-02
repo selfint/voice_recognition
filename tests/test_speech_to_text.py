@@ -56,3 +56,19 @@ def test_speech_to_text_from_queue_to_queue():
     stt.stt_from_queue_to_queue(input_queue, output_queue)
 
     assert list(output_queue) == [""]
+
+def test_from_queue_greedy():
+    stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
+    input_queue = deque()
+    output_queue = deque()
+
+    audio_buffers = [np.zeros(16000, dtype=np.int16), np.zeros(16000, dtype=np.int16)]
+
+    input_queue.extend(audio_buffers)
+
+    stt.stt_from_queue_to_queue(input_queue, output_queue, greedy=True)
+
+    assert list(output_queue) == [""]
+
+    # make sure input queue is empty
+    assert not input_queue
