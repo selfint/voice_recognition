@@ -49,26 +49,33 @@ def load_wav(wav_file: Path) -> np.ndarray:
 
 
 def main():
-    audio_files_queue = deque()
-    audio_buffers_queue = deque()
-    text_queue = deque()
+    audio_files_queue: Deque[Path] = deque()
+    audio_buffers_queue = deque(maxlen=3)
+    text_queue = deque(maxlen=3)
     stt = SpeechToText(MODEL, SCORER)
 
     with tempfile.TemporaryDirectory() as audio_dir:
+        print(f"Recording!")
         sr = start_sox(Path(audio_dir), audio_files_queue)
+
         try:
             while True:
                 if audio_files_queue:
-                    audio_buffer = load_wav(audio_files_queue.pop())
+                    print(f"Loading audio file")
+
+                    wav_file = audio_files_queue.pop()
+                    audio_buffer = load_wav(wav_file)
+                    wav_file.unlink()
 
                     audio_buffers_queue.append(audio_buffer)
 
-                stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue)
+                print(f"Recognizing {len(audio_buffers_queue)} buffers")
+                stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue, greedy=True, pop=False)
 
-                if text_queue:
-                    print(text_queue.pop())
+                while text_queue:
+                    print(f"Recognized f{text_queue.pop()!r}")
 
-                time.sleep(1)
+                time.sleep(0.5)
 
         except KeyboardInterrupt:
             sr.stop()
