@@ -17,7 +17,7 @@ class SpeechToText:
         """Run model on audio buffer
 
         Args:
-            audio (np.ndarray): Audio buffer to run STT on
+            audio_buffer (np.ndarray): Audio buffer to run STT on
 
         Returns:
             str: Text recognized in audio buffer
@@ -29,7 +29,7 @@ class SpeechToText:
         """Run model on audio buffer and push text to output queue
 
         Args:
-            audio (np.ndarray): Audio buffer to run STT on
+            audio_buffer (np.ndarray): Audio buffer to run STT on
             output_queue (Deque[str]): Queue to push text to
         """
 
