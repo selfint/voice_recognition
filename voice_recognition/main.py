@@ -114,7 +114,7 @@ def recognizer(
         time.sleep(0.5)
 
 
-def run_multi_threaded():
+def run_continuous_asynchronously():
     audio_files_queue: Deque[Path] = deque()
     audio_buffers_queue: Deque[np.ndarray] = deque(maxlen=2)
     text_queue: Deque[str] = deque()
@@ -148,18 +148,18 @@ def run_multi_threaded():
             sr.stop()
 
 
-def run_single_threaded():
+def run_continuous_interactively():
     sr = SoxRecorder()
     stt = SpeechToText(MODEL, SCORER)
     while True:
         print(stt.stt(sr.record_once()))
 
 
-def recognize_once():
+def run_one_interactively():
     sr = SoxRecorder()
     stt = SpeechToText(MODEL, SCORER)
     print(stt.stt(sr.record_once()))
 
 
 if __name__ == "__main__":
-    run_multi_threaded()
+    run_continuous_asynchronously()
