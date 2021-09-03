@@ -27,20 +27,6 @@ def test_stop_sox_subprocess(mock_popen: MagicMock):
     mock_terminate.assert_called_once()
 
 
-def _mock_recording(data_dir: Path):
-    """Generate empty files with a .wav extension every 2 seconds
-    in the given ``data_dir``
-
-    Args:
-        data_dir (Path): Path to directory to generate files in
-    """
-
-    counter = 0
-    while True:
-        filename = f"mock_data{counter:05}.wav"
-        (data_dir / filename).touch()
-
-
 def test_sox_recorder_watchdog():
     with tempfile.TemporaryDirectory() as tempdir:
         data_dir = Path(tempdir) / "data"
