@@ -60,22 +60,27 @@ class SoxRecorder:
     def stop_sox_subprocess(self):
         """Stop the sox recording subprocess"""
 
-        self._record_process.terminate()
+        if self._record_process is not None:
+            self._record_process.terminate()
 
     def start_watchdog(self):
         """
         Start the watchdog observer on the data dir, push created files to output queue
+
+        NOTE: will not start watchdog if ``_output_queue`` is None.
         """
 
-        self._watchdog = Observer()
-        self._watchdog.schedule(OnCreateHandler(self._output_queue), self._data_dir)
-        self._watchdog.start()
+        if self._output_queue is not None:
+            self._watchdog = Observer()
+            self._watchdog.schedule(OnCreateHandler(self._output_queue), self._data_dir)
+            self._watchdog.start()
 
     def stop_watchdog(self):
         """Stop watchdog execution"""
 
-        self._watchdog.stop()
-        self._watchdog.join()
+        if self._watchdog is not None:
+            self._watchdog.stop()
+            self._watchdog.join()
 
     def start(self):
         """Start all SoxRecorder activity
