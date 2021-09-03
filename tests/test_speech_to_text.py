@@ -57,6 +57,7 @@ def test_speech_to_text_from_queue_to_queue():
 
     assert list(output_queue) == [""]
 
+
 def test_from_queue_greedy():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
     input_queue = deque()
@@ -73,6 +74,7 @@ def test_from_queue_greedy():
     # make sure input queue is empty
     assert not input_queue
 
+
 def test_from_queue_greedy_no_pop():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)
     input_queue = deque()
@@ -88,6 +90,7 @@ def test_from_queue_greedy_no_pop():
 
     # make sure input queue is not empty
     assert list(input_queue) == audio_buffers
+
 
 def test_from_queue_no_greedy_no_pop():
     stt = SpeechToText(model_path=MODEL, scorer_path=SCORER)

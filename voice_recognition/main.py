@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Deque
 
 import numpy as np
-
 from voice_recogntion.sox_recorder import SoxRecorder
 from voice_recogntion.speech_to_text import SpeechToText
 
@@ -68,7 +67,9 @@ def file_loader(audio_files_queue: Deque[Path], audio_buffers_queue: Deque[np.nd
             audio_buffers_queue.append(audio_buffer)
 
 
-def recognizer(stt: SpeechToText, audio_buffers_queue: Deque[np.ndarray], text_queue: Deque[str]):
+def recognizer(
+    stt: SpeechToText, audio_buffers_queue: Deque[np.ndarray], text_queue: Deque[str]
+):
     """Recognize text in audio buffers queue, save results in the text queue.
 
     Use ``stt`` to recognize speech in audio buffers from the ``audio_buffers_queue``,
@@ -89,9 +90,13 @@ def main():
     audio_buffers_queue = deque(maxlen=3)
     text_queue = deque(maxlen=3)
     stt = SpeechToText(MODEL, SCORER)
-    file_loader_process = Process(target=file_loader, args=(audio_files_queue, audio_buffers_queue))
+    file_loader_process = Process(
+        target=file_loader, args=(audio_files_queue, audio_buffers_queue)
+    )
     file_loader_process.daemon = True
-    recognizer_process = Process(target=recognizer, args=(stt, audio_buffers_queue, text_queue))
+    recognizer_process = Process(
+        target=recognizer, args=(stt, audio_buffers_queue, text_queue)
+    )
     recognizer_process.daemon = True
 
     with tempfile.TemporaryDirectory() as audio_dir:

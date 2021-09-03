@@ -38,7 +38,7 @@ class SpeechToText:
     def stt_to_queue(
         self,
         audio_buffer: Union[np.ndarray, List[np.ndarray]],
-        output_queue: Deque[str]
+        output_queue: Deque[str],
     ):
         """Run model on audio buffer and push text to output queue
 
