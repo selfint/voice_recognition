@@ -33,7 +33,7 @@ class SoundDetector:
         """
 
         segment = AudioSegment(
-            audio,
+            audio.tobytes(),
             frame_rate=16000,
             channels=1,
             sample_width=2,
@@ -43,8 +43,6 @@ class SoundDetector:
             min_silence_len=self._min_silence_length,
             silence_thresh=self._silence_threshold,
         )
-        print(nonsilences)
-        print(len(segment))
 
         parts = []
         for nonsilence_start, nonsilence_end in nonsilences:
@@ -89,7 +87,7 @@ class SoundDetector:
         Args:
             ms: Millisecond of bit index
             sample_rate: Sample rate of audio
-            bit_depth: bit depth of audio
+            bit_depth: Bit depth of audio
 
         Returns:
             int: Bit index of millisecond
@@ -97,10 +95,11 @@ class SoundDetector:
 
         sample_rate_per_ms = sample_rate / 1000
         bytes_per_sample = int(bit_depth / 8)
+        byte_index = ms * sample_rate_per_ms * bytes_per_sample
 
-        # make sure byte_index is an integer
-        # TODO: do we need to do this? (probably not, but what about 44.1k sample rate?)
-        byte_index = int(ms * sample_rate_per_ms * bytes_per_sample)
+        # TODO: do we need to use int?
+        # TODO: why do we need to divide by 8?
+        byte_index = int(ms * sample_rate_per_ms * bytes_per_sample / 8)
 
         return byte_index
 

@@ -11,7 +11,7 @@ from voice_recognition.sox_recorder import SoxRecorder
 
 @patch("subprocess.Popen")
 def test_start_sox_subprocess(mock_popen: MagicMock):
-    SoxRecorder(Path("tests/temp")).start_sox_subprocess()
+    SoxRecorder(Path("tests/temp")).start_sox_subprocess(1)
     mock_popen.assert_called_once()
 
 
@@ -23,7 +23,7 @@ def test_stop_sox_subprocess(mock_popen: MagicMock):
     mock_popen.return_value = mock_process
 
     sr = SoxRecorder(Path("tests/temp"))
-    sr.start_sox_subprocess()
+    sr.start_sox_subprocess(1)
     sr.stop_sox_subprocess()
     mock_terminate.assert_called_once()
 

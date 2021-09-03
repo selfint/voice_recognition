@@ -23,7 +23,10 @@ class SpeechToText:
             str: Text recognized in audio buffer
         """
 
-        if isinstance(audio_buffer, list):
+        if isinstance(audio_buffer, np.ndarray):
+            return self.model.stt(audio_buffer)
+
+        elif isinstance(audio_buffer, list):
 
             # merge all audio buffers into a stream
             stream = self.model.createStream()
@@ -31,9 +34,6 @@ class SpeechToText:
                 stream.feedAudioContent(buffer)
 
             return stream.finishStream()
-
-        elif isinstance(audio_buffer, np.ndarray):
-            return self.model.stt(audio_buffer)
 
     def stt_to_queue(
         self,
@@ -87,7 +87,10 @@ class SpeechToText:
                 audio_buffer = list(input_queue)
             elif not greedy and pop:
                 audio_buffer = input_queue.pop()
-            elif not greedy and not pop:
+            else:
                 audio_buffer = input_queue[-1]
+
+            if isinstance(audio_buffer, list) and len(audio_buffer) == 1:
+                audio_buffer = audio_buffer[0]
 
             self.stt_to_queue(audio_buffer, output_queue)

@@ -1,10 +1,12 @@
+import subprocess
 import tempfile
 import time
+from voice_recognition.sound_detector import SoundDetector
 import wave
 from collections import deque
 from multiprocessing.dummy import Process
 from pathlib import Path
-from typing import Callable, Deque
+from typing import Callable, Deque, Optional
 
 import numpy as np
 from voice_recognition.sox_recorder import SoxRecorder
@@ -14,7 +16,7 @@ MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
 SCORER = Path("models/english/deepspeech-0.9.3-models.scorer")
 
 
-def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
+def start_sox(audio_dir: Path, duration: float, audio_queue: Deque[Path]):
     """Start the SoxRecorder.
 
     Args:
@@ -22,7 +24,7 @@ def start_sox(audio_dir: Path, audio_queue: Deque[Path]):
         audio_queue (Deque[Path]): Queue to push generated audio files into
     """
     sr = SoxRecorder(Path(audio_dir), audio_queue)
-    sr.start()
+    sr.start(duration)
 
     return sr
 
@@ -41,8 +43,8 @@ def load_wav(wav_file: Path) -> np.ndarray:
     try:
         fin = wave.open(str(wav_file.resolve()), "rb")
     except EOFError:
-        return np.zeros(16000, np.int16)
-    audio = np.frombuffer(fin.readframes(fin.getnframes()), np.int16)
+        return np.zeros(16000)
+    audio = np.frombuffer(fin.readframes(fin.getnframes()))
     fin.close()
 
     return audio
@@ -58,7 +60,7 @@ def load_raw(raw_file: Path) -> np.ndarray:
     """
 
     with raw_file.open("rb") as audio_file:
-        audio_buffer = np.frombuffer(audio_file.read(), np.int16)
+        audio_buffer = np.frombuffer(audio_file.read())
 
     return audio_buffer
 
@@ -88,18 +90,88 @@ def file_loader(
             time.sleep(0.5)
 
 
+def audio_bucketer(
+    sd: SoundDetector,
+    audio_buffers: Deque[np.ndarray],
+    output_queue: Deque[np.ndarray],
+):
+    """Bucket audio samples by sound continuation.
+
+    Read and expand audio buffers from the ``audio_buffers`` queue.
+    When a period of "silence, sound, silence" is detected, then it is merged
+    into a single audio buffer and pushed to the ``output_queue``.
+
+    Args:
+        sd: SoundDetector to use for sound detection
+        audio_buffers: Queue with audio buffers to bucket
+        output_queue: Queue to push audio buckets to
+    """
+
+    print("Audio bucketer started")
+
+    audio_buffer = np.array([])
+
+    while True:
+        if audio_buffers:
+            # append next buffer to the audio buffer
+            next_buffer = audio_buffers.pop()
+            audio_buffer = np.concatenate((audio_buffer, next_buffer))
+
+            sounds = sd.detect_sound(audio_buffer, keep_silence=True)
+            print(sounds)
+
+            new_start = 0
+            for start, end in sounds:
+                speak_buffer(audio_buffer[start:end])
+                sound = np.frombuffer(
+                    audio_buffer[start:end].tobytes(),
+                    dtype=np.int16
+                )
+                new_start = end
+
+                # do not push the last sound if it is not finished yet
+                #if end == len(audio_buffer):
+                #    new_start = start
+
+                #    # this also means that it is the last sound and we can break
+                #    break
+
+                output_queue.append(sound)
+
+            # remove all parts of the buffer that have been processed
+            audio_buffer = audio_buffer[new_start:].copy()
+
+            max_buffer_size = SoundDetector.ms_to_byte_index(10000, 16000, 16)
+            if len(audio_buffer) >= max_buffer_size:
+                speak_buffer(audio_buffer)
+                output_queue.append(np.array(audio_buffer, dtype=np.int16))
+                audio_buffer = np.array([])
+
+            time.sleep(0.5)
+
+def speak_buffer(audio_buffer: np.ndarray):
+    audio_buffer.tofile("sound.raw")
+    print("## speaking ##")
+    speaker = subprocess.Popen(
+        "play -r 16k -b 16 -e signed-integer -q sound.raw",
+        shell=True,
+    )
+    #print(speaker.communicate())
+
+
+
 def recognizer(
     stt: SpeechToText, audio_buffers: Deque[np.ndarray], output_queue: Deque[str]
 ):
     """Recognize text in audio buffers queue, save results in the text queue.
 
-    Use ``stt`` to recognize speech in audio buffers from the ``audio_buffers_queue``,
-    push recognized text to the ``text_queue``.
+    Use ``stt`` to recognize speech in audio buffers from the
+    ``audio_buffers_queue``, push recognized text to the ``text_queue``.
 
     Args:
         stt (SpeechToText): SpeechToText to use for voice recognition
-        audio_buffers_queue (Deque[np.ndarray]): Queue with audio buffers to recognize
-        text_queue (Deque[str]): Queue to push recognized text to
+        audio_buffers (Deque[np.ndarray]): Queue with audio buffers to recognize
+        output_queue (Deque[str]): Queue to push recognized text to
     """
 
     print("Recognizer started")
@@ -108,7 +180,7 @@ def recognizer(
             audio_buffers,
             output_queue,
             greedy=True,
-            pop=False
+            pop=True,
         )
 
         time.sleep(0.5)
@@ -116,29 +188,44 @@ def recognizer(
 
 def run_continuous_asynchronously():
     audio_files_queue: Deque[Path] = deque()
-    audio_buffers_queue: Deque[np.ndarray] = deque(maxlen=2)
+    audio_buffers_queue: Deque[np.ndarray] = deque()
+    audio_buckets_queue: Deque[np.ndarray] = deque()
     text_queue: Deque[str] = deque()
 
     stt = SpeechToText(MODEL, SCORER)
+    sd = SoundDetector(-48, 250)
 
     file_loader_process = Process(
         target=file_loader, args=(load_raw, audio_files_queue, audio_buffers_queue)
     )
     file_loader_process.daemon = True
 
+    audio_bucketer_process = Process(
+        target=audio_bucketer,
+        args=(sd, audio_buffers_queue, audio_buckets_queue),
+    )
+    audio_bucketer_process.daemon = True
+
     recognizer_process = Process(
-        target=recognizer, args=(stt, audio_buffers_queue, text_queue)
+        target=recognizer, args=(stt, audio_buckets_queue, text_queue)
     )
     recognizer_process.daemon = True
 
     with tempfile.TemporaryDirectory() as audio_dir:
         print(f"Voice io started!")
-        sr = start_sox(Path(audio_dir), audio_files_queue)
+        sr = start_sox(Path(audio_dir), 3, audio_files_queue)
         file_loader_process.start()
+        audio_bucketer_process.start()
         recognizer_process.start()
 
         try:
             while True:
+                # print queue states
+                #print(f"Files: {list(audio_files_queue)!r}")
+                #print(f"Audio: {list(audio_buffers_queue)!r}")
+                #print(f"Buckets: {list(audio_buckets_queue)!r}")
+                #print(f"Text: {list(text_queue)!r}")
+
                 while text_queue:
                     print(f"{text_queue.pop()!r}")
 
@@ -158,7 +245,9 @@ def run_continuous_interactively():
 def run_one_interactively():
     sr = SoxRecorder()
     stt = SpeechToText(MODEL, SCORER)
-    print(stt.stt(sr.record_once()))
+    audio = sr.record_once()
+    speak_buffer(audio)
+    print(stt.stt(audio))
 
 
 if __name__ == "__main__":

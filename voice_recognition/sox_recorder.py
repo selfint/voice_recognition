@@ -74,7 +74,7 @@ class SoxRecorder:
         self._record_process: Optional[subprocess.Popen] = None
         self._watchdog: Optional[Observer] = None
 
-    def start_sox_subprocess(self):
+    def start_sox_subprocess(self, duration: float):
         """Start generating audio files in the data directory"""
 
         if self._data_dir is None:
@@ -87,7 +87,7 @@ class SoxRecorder:
             audio_type="raw",
             record_dir=self._data_dir,
             audio_filename_template="audio.raw",
-            duration=3,
+            duration=duration,
         )
 
         self._record_process = subprocess.Popen(
@@ -125,14 +125,14 @@ class SoxRecorder:
             self._watchdog.stop()
             self._watchdog.join()
 
-    def start(self):
+    def start(self, duration: float):
         """Start all SoxRecorder activity
 
         Start generating audio files in the ``data_dir``, start a watchdog on
         that directory and push Path of created files to the ``output_queue``.
         """
 
-        self.start_sox_subprocess()
+        self.start_sox_subprocess(duration)
         self.start_watchdog()
 
     def stop(self):
