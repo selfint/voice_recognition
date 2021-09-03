@@ -26,7 +26,7 @@ def _create_sox_record_cmd(
         duration (float): Length (in seconds) of each audio file
 
     Returns:
-        str: Sox command to continuosly generate audio files in a directory
+        str: Sox command to continuously generate audio files in a directory
     """
 
     return SOX_RECORD_CMD.format(record_dir, audio_filename_template, duration)
