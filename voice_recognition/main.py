@@ -4,7 +4,7 @@ import wave
 from collections import deque
 from multiprocessing.dummy import Process
 from pathlib import Path
-from typing import Deque
+from typing import Callable, Deque
 
 import numpy as np
 from voice_recognition.sox_recorder import SoxRecorder
@@ -47,24 +47,45 @@ def load_wav(wav_file: Path) -> np.ndarray:
 
     return audio
 
+def load_raw(raw_file: Path) -> np.ndarray:
+    """Load raw audio file into a numpy array
 
-def file_loader(audio_files_queue: Deque[Path], audio_buffers_queue: Deque[np.ndarray]):
+    Args:
+        raw_file: Path to raw audio file
+
+    Returns:
+        np.ndarray: Raw audio buffer in file
+    """
+
+    with raw_file.open("rb") as audio_file:
+        audio_buffer = np.frombuffer(audio_file.read(), np.int16)
+
+    return audio_buffer
+
+
+def file_loader(
+    load_func: Callable[[Path], np.ndarray],
+    audio_files_queue: Deque[Path],
+    audio_buffers_queue: Deque[np.ndarray]
+):
     """
     Load WAV files in audio files queue into audio buffers queue.
     Args:
+        load_func: Function to call to load the file into an audio buffer
         audio_files_queue: Queue containing paths of audio files to load
         audio_buffers_queue: Queue to upload audio buffers to
     """
 
+    print("File loader started")
     while True:
         if audio_files_queue:
-            print(f"Loading audio file")
-
-            wav_file = audio_files_queue.pop()
-            audio_buffer = load_wav(wav_file)
-            wav_file.unlink()
+            audio_file = audio_files_queue.pop()
+            audio_buffer = load_func(audio_file)
+            audio_file.unlink()
 
             audio_buffers_queue.append(audio_buffer)
+
+            time.sleep(0.5)
 
 
 def recognizer(
@@ -81,26 +102,37 @@ def recognizer(
         text_queue (Deque[str]): Queue to push recognized text to
     """
 
-    print(f"Recognizing {len(audio_buffers_queue)} buffers")
-    stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue, greedy=True, pop=False)
+    print("Recognizer started")
+    while True:
+        stt.stt_from_queue_to_queue(
+            audio_buffers_queue,
+            text_queue,
+            greedy=True,
+            pop=False
+        )
+
+        time.sleep(0.5)
 
 
-def main():
+def run_multi_threaded():
     audio_files_queue: Deque[Path] = deque()
-    audio_buffers_queue = deque(maxlen=3)
-    text_queue = deque(maxlen=3)
+    audio_buffers_queue: Deque[np.ndarray] = deque(maxlen=2)
+    text_queue: Deque[str] = deque()
+
     stt = SpeechToText(MODEL, SCORER)
+
     file_loader_process = Process(
-        target=file_loader, args=(audio_files_queue, audio_buffers_queue)
+        target=file_loader, args=(load_raw, audio_files_queue, audio_buffers_queue)
     )
     file_loader_process.daemon = True
+
     recognizer_process = Process(
         target=recognizer, args=(stt, audio_buffers_queue, text_queue)
     )
     recognizer_process.daemon = True
 
     with tempfile.TemporaryDirectory() as audio_dir:
-        print(f"Recording!")
+        print(f"Voice io started!")
         sr = start_sox(Path(audio_dir), audio_files_queue)
         file_loader_process.start()
         recognizer_process.start()
@@ -108,7 +140,7 @@ def main():
         try:
             while True:
                 while text_queue:
-                    print(f"Recognized f{text_queue.pop()!r}")
+                    print(f"{text_queue.pop()!r}")
 
                 time.sleep(0.5)
 
@@ -116,11 +148,18 @@ def main():
             sr.stop()
 
 
-def recognize():
+def run_single_threaded():
+    sr = SoxRecorder()
     stt = SpeechToText(MODEL, SCORER)
-    audio = load_wav(Path("a.wav"))
-    print(stt.stt(audio))
+    while True:
+        print(stt.stt(sr.record_once()))
+
+
+def recognize_once():
+    sr = SoxRecorder()
+    stt = SpeechToText(MODEL, SCORER)
+    print(stt.stt(sr.record_once()))
 
 
 if __name__ == "__main__":
-    main()
+    run_multi_threaded()
