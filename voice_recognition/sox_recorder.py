@@ -94,8 +94,11 @@ class SoxRecorder:
             self._record_process.terminate()
 
     def start_watchdog(self):
-        """
-        Start the watchdog observer on the data dir, push created files to output queue
+        """Push completed audio files in the ``_data_dir`` to the ``output_queue``
+
+        A file is "completed" when the next file is created, since when the first
+        file is created it is still being recorded to. So when the next file is
+        created that means that sox is done with the first file.
 
         NOTE: will not start watchdog if ``_output_queue`` is None.
         """
@@ -161,6 +164,7 @@ class OnCreateHandler(FileSystemEventHandler):
     def __init__(self, output_queue: Deque) -> None:
         super().__init__()
         self._output_queue = output_queue
+        self._previous_file: Optional[Path] = None
 
     def on_created(self, event: FileSystemEvent):
         """Add created file (ignore created directories) to the output queue
@@ -171,4 +175,7 @@ class OnCreateHandler(FileSystemEventHandler):
 
         # only add files to the output queue
         if not event.is_directory:
-            self._output_queue.append(Path(event.src_path))
+            if self._previous_file is not None:
+                self._output_queue.append(Path(self._previous_file))
+
+            self._previous_file = event.src_path

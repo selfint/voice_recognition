@@ -40,10 +40,15 @@ def test_sox_recorder_watchdog():
         newfile = data_dir / "file1.wav"
         newfile.touch()
         time.sleep(0.01)
-        assert list(output_queue) == [newfile]
+        assert list(output_queue) == []
 
         newfile2 = data_dir / "file2.wav"
         newfile2.touch()
+        time.sleep(0.01)
+        assert list(output_queue) == [newfile]
+
+        newfile3 = data_dir / "file3.wav"
+        newfile3.touch()
         time.sleep(0.01)
         assert list(output_queue) == [newfile, newfile2]
 
