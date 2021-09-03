@@ -1,4 +1,4 @@
-from voice_recogntion import __version__
+from voice_recognition import __version__
 
 
 def test_version():

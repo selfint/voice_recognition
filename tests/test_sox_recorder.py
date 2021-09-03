@@ -5,7 +5,7 @@ from collections import deque
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from voice_recogntion.sox_recorder import SoxRecorder
+from voice_recognition.sox_recorder import SoxRecorder
 
 
 @patch("subprocess.Popen")
