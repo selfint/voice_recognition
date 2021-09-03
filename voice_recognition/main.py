@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Deque
 
 import numpy as np
-from voice_recogntion.sox_recorder import SoxRecorder
-from voice_recogntion.speech_to_text import SpeechToText
+from voice_recognition.sox_recorder import SoxRecorder
+from voice_recognition.speech_to_text import SpeechToText
 
 MODEL = Path("models/english/deepspeech-0.9.3-models.pbmm")
 SCORER = Path("models/english/deepspeech-0.9.3-models.scorer")
