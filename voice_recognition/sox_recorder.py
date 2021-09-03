@@ -8,7 +8,7 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 SOX_RECORD_CMD = (
-    "rec -r 16000 -c 1 -e signed-integer "
+    "rec --type {} -r 16000 -c 1 -e signed-integer "
     "--endian little --compression 0.0 --no-dither -p "
     "| sox -p -b 16 {}/{} trim 0 {} : newfile : restart"
 )
@@ -20,6 +20,7 @@ SOX_RECORD_ONCE_CMD = (
 
 
 def _create_sox_record_cmd(
+    audio_type: str,
     record_dir: Path,
     audio_filename_template: str,
     duration: float,
@@ -27,6 +28,7 @@ def _create_sox_record_cmd(
     """Create SOX record command.
 
     Args:
+        audio_type (str): Type of audio file to create (e.g. 'raw', 'wav', ...)
         record_dir (Path): Path to directory for audio files
         audio_filename_template (str): Base template for file names, numbers will be
         inserted before the filetype suffix
@@ -36,7 +38,12 @@ def _create_sox_record_cmd(
         str: Sox command to continuously generate audio files in a directory
     """
 
-    return SOX_RECORD_CMD.format(record_dir, audio_filename_template, duration)
+    return SOX_RECORD_CMD.format(
+        audio_type,
+        record_dir,
+        audio_filename_template,
+        duration
+    )
 
 
 def _create_sox_record_once_cmd(duration: float) -> str:
@@ -77,7 +84,10 @@ class SoxRecorder:
         self._data_dir.mkdir(parents=True, exist_ok=True)
 
         cmd = _create_sox_record_cmd(
-            record_dir=self._data_dir, audio_filename_template="audio.wav", duration=2
+            audio_type="raw",
+            record_dir=self._data_dir,
+            audio_filename_template="audio.raw",
+            duration=3,
         )
 
         self._record_process = subprocess.Popen(
