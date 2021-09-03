@@ -2,6 +2,7 @@ import tempfile
 import time
 import wave
 from collections import deque
+from multiprocessing.dummy import Process
 from pathlib import Path
 from typing import Deque
 
@@ -48,30 +49,59 @@ def load_wav(wav_file: Path) -> np.ndarray:
     return audio
 
 
+def file_loader(audio_files_queue: Deque[Path], audio_buffers_queue: Deque[np.ndarray]):
+    """
+    Load WAV files in audio files queue into audio buffers queue.
+    Args:
+        audio_files_queue: Queue containing paths of audio files to load
+        audio_buffers_queue: Queue to upload audio buffers to
+    """
+
+    while True:
+        if audio_files_queue:
+            print(f"Loading audio file")
+
+            wav_file = audio_files_queue.pop()
+            audio_buffer = load_wav(wav_file)
+            wav_file.unlink()
+
+            audio_buffers_queue.append(audio_buffer)
+
+
+def recognizer(stt: SpeechToText, audio_buffers_queue: Deque[np.ndarray], text_queue: Deque[str]):
+    """Recognize text in audio buffers queue, save results in the text queue.
+
+    Use ``stt`` to recognize speech in audio buffers from the ``audio_buffers_queue``,
+    push recognized text to the ``text_queue``.
+
+    Args:
+        stt (SpeechToText): SpeechToText to use for voice recognition
+        audio_buffers_queue (Deque[np.ndarray]): Queue with audio buffers to recognize
+        text_queue (Deque[str]): Queue to push recognized text to
+    """
+
+    print(f"Recognizing {len(audio_buffers_queue)} buffers")
+    stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue, greedy=True, pop=False)
+
+
 def main():
     audio_files_queue: Deque[Path] = deque()
     audio_buffers_queue = deque(maxlen=3)
     text_queue = deque(maxlen=3)
     stt = SpeechToText(MODEL, SCORER)
+    file_loader_process = Process(target=file_loader, args=(audio_files_queue, audio_buffers_queue))
+    file_loader_process.daemon = True
+    recognizer_process = Process(target=recognizer, args=(stt, audio_buffers_queue, text_queue))
+    recognizer_process.daemon = True
 
     with tempfile.TemporaryDirectory() as audio_dir:
         print(f"Recording!")
         sr = start_sox(Path(audio_dir), audio_files_queue)
+        file_loader_process.start()
+        recognizer_process.start()
 
         try:
             while True:
-                if audio_files_queue:
-                    print(f"Loading audio file")
-
-                    wav_file = audio_files_queue.pop()
-                    audio_buffer = load_wav(wav_file)
-                    wav_file.unlink()
-
-                    audio_buffers_queue.append(audio_buffer)
-
-                print(f"Recognizing {len(audio_buffers_queue)} buffers")
-                stt.stt_from_queue_to_queue(audio_buffers_queue, text_queue, greedy=True, pop=False)
-
                 while text_queue:
                     print(f"Recognized f{text_queue.pop()!r}")
 
