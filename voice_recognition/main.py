@@ -65,8 +65,8 @@ def load_raw(raw_file: Path) -> np.ndarray:
 
 def file_loader(
     load_func: Callable[[Path], np.ndarray],
-    audio_files_queue: Deque[Path],
-    audio_buffers_queue: Deque[np.ndarray]
+    audio_files: Deque[Path],
+    output_queue: Deque[np.ndarray]
 ):
     """
     Load WAV files in audio files queue into audio buffers queue.
@@ -78,18 +78,18 @@ def file_loader(
 
     print("File loader started")
     while True:
-        if audio_files_queue:
-            audio_file = audio_files_queue.pop()
+        if audio_files:
+            audio_file = audio_files.pop()
             audio_buffer = load_func(audio_file)
             audio_file.unlink()
 
-            audio_buffers_queue.append(audio_buffer)
+            output_queue.append(audio_buffer)
 
             time.sleep(0.5)
 
 
 def recognizer(
-    stt: SpeechToText, audio_buffers_queue: Deque[np.ndarray], text_queue: Deque[str]
+    stt: SpeechToText, audio_buffers: Deque[np.ndarray], output_queue: Deque[str]
 ):
     """Recognize text in audio buffers queue, save results in the text queue.
 
@@ -105,8 +105,8 @@ def recognizer(
     print("Recognizer started")
     while True:
         stt.stt_from_queue_to_queue(
-            audio_buffers_queue,
-            text_queue,
+            audio_buffers,
+            output_queue,
             greedy=True,
             pop=False
         )
