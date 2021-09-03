@@ -81,6 +81,20 @@ python-versions = "*"
 numpy = ">=1.9.0"
 
 [[package]]
+name = "isort"
+version = "5.9.3"
+description = "A Python utility / library to sort Python imports."
+category = "dev"
+optional = false
+python-versions = ">=3.6.1,<4.0"
+
+[package.extras]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
+requirements_deprecated_finder = ["pipreqs", "pip-api"]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
+plugins = ["setuptools"]
+
+[[package]]
 name = "more-itertools"
 version = "8.8.0"
 description = "More routines for operating on iterables, beyond itertools"
@@ -245,7 +259,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "5cd8f444f691d5af336ed8e6e2ff598454384bfa5f921cdfe8d4cd0b6d066ebc"
+content-hash = "86f554b6ef5685f461d3c93d9cbe143f95579372ff8180e4460bf424f475b53a"
 
 [metadata.files]
 appdirs = [
@@ -289,6 +303,10 @@ deepspeech = [
     {file = "deepspeech-0.9.3-cp39-cp39-macosx_10_10_x86_64.whl", hash = "sha256:e9251407bc9c51177739994941420d43afc18b972bb3f5296a2b1c11a2b92b06"},
     {file = "deepspeech-0.9.3-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:e2e7295ba4997ab86b4fb1bd7a784319dfcdb508ce26638063515334c11fa05a"},
     {file = "deepspeech-0.9.3-cp39-cp39-win_amd64.whl", hash = "sha256:b25e3203f598300f14cb73ae4e6796a64456ca9c746c167c04381fa939184f2c"},
+]
+isort = [
+    {file = "isort-5.9.3-py3-none-any.whl", hash = "sha256:e17d6e2b81095c9db0a03a8025a957f334d6ea30b26f9ec70805411e5c7c81f2"},
+    {file = "isort-5.9.3.tar.gz", hash = "sha256:9c2ea1e62d871267b78307fe511c0838ba0da28698c5732d54e2790bf3ba9899"},
 ]
 more-itertools = [
     {file = "more-itertools-8.8.0.tar.gz", hash = "sha256:83f0308e05477c68f56ea3a888172c78ed5d5b3c282addb67508e7ba6c8f813a"},
