@@ -4,6 +4,7 @@ import time
 from collections import deque
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import numpy as np
 
 from voice_recognition.sox_recorder import SoxRecorder
 
@@ -45,3 +46,16 @@ def test_sox_recorder_watchdog():
         newfile2.touch()
         time.sleep(0.01)
         assert list(output_queue) == [newfile, newfile2]
+
+
+@patch("subprocess.check_output")
+def test_record_once(mock_check_output: MagicMock):
+    # return one second of silence
+    zeroes = np.zeros(16000, dtype=np.int16)
+    mock_check_output.return_value = zeroes.tobytes()
+
+    sr = SoxRecorder()
+
+    audio_buffer = sr.record_once()
+
+    np.testing.assert_array_equal(audio_buffer, zeroes)

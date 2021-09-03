@@ -1,6 +1,8 @@
 import subprocess
 from pathlib import Path
 from typing import Deque, Optional
+import shlex
+import numpy as np
 
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
@@ -9,6 +11,11 @@ SOX_RECORD_CMD = (
     "rec -r 16000 -c 1 -e signed-integer "
     "--endian little --compression 0.0 --no-dither -p "
     "| sox -p -b 16 {}/{} trim 0 {} : newfile : restart"
+)
+
+SOX_RECORD_ONCE_CMD = (
+    "rec --type raw -r 16000 -c 1 -e signed-integer --endian little "
+    "--compression 0.0 --no-dither - trim 0 {}"
 )
 
 
@@ -32,8 +39,28 @@ def _create_sox_record_cmd(
     return SOX_RECORD_CMD.format(record_dir, audio_filename_template, duration)
 
 
+def _create_sox_record_once_cmd(duration: float) -> str:
+    """Create SOX record once command.
+
+    Records the given duration and return the raw audio.
+
+    Args:
+        duration: Duration (in seconds) to record
+
+    Returns:
+        str: SOX command to record for the given duration and get raw audio data
+    """
+
+    return SOX_RECORD_ONCE_CMD.format(duration)
+
+
+
 class SoxRecorder:
-    def __init__(self, data_dir: Path, output_queue: Optional[Deque] = None) -> None:
+    def __init__(
+        self,
+        data_dir: Optional[Path] = None,
+        output_queue: Optional[Deque] = None
+    ) -> None:
         self._data_dir = data_dir
         self._output_queue = output_queue
 
@@ -42,6 +69,9 @@ class SoxRecorder:
 
     def start_sox_subprocess(self):
         """Start generating audio files in the data directory"""
+
+        if self._data_dir is None:
+            raise ValueError("Can't record since no data dir was given")
 
         # make sure data dir exists
         self._data_dir.mkdir(parents=True, exist_ok=True)
@@ -102,6 +132,29 @@ class SoxRecorder:
 
         self.stop_sox_subprocess()
         self.stop_watchdog()
+
+    def record_once(self) -> np.ndarray:
+        """Record audio once and return the audio data.
+
+        Start a ``sox`` command in a subprocess, capture the raw audio result
+        from standard out, and convert it to an ``np.ndarray`` object.
+
+        Returns:
+            np.ndarray: Audio buffer of recording
+        """
+
+        cmd = _create_sox_record_once_cmd(duration=2)
+
+        try:
+            output = subprocess.check_output(
+                shlex.split(cmd),
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("SoX returned non-zero status: {}".format(e.stderr))
+
+        return np.frombuffer(output, np.int16)
+
 
 
 class OnCreateHandler(FileSystemEventHandler):
