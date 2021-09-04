@@ -282,7 +282,7 @@ def run_continuous_asynchronously():
 
     with tempfile.TemporaryDirectory() as audio_dir:
         print(f"Voice io started!")
-        sr = start_sox(Path(audio_dir), 3, audio_files_queue)
+        sr = start_sox(Path(audio_dir), 1, audio_files_queue)
         file_loader_process.start()
         audio_bucketer_process.start()
         file_writer_process.start()
