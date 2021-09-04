@@ -119,14 +119,27 @@ class SoxRecorder:
             self._watchdog.stop()
             self._watchdog.join()
 
-    def start(self, duration: float):
-        """Start all SoxRecorder activity
+    def start(self, audio_length: float):
+        """Start the SoX recorder.
 
-        Start generating audio files in the ``data_dir``, start a watchdog on
-        that directory and push Path of created files to the ``output_queue``.
+        Continuously record audio files of length ``audio_length`` in the
+        given ``audio_dir``. Once the file is "completed", push the path
+        of the audio file to the ``output_queue``.
+
+        A "completed" file is a file that contains ``audio_length`` seconds
+        of audio. We know a file is "completed" once a new file was created,
+        since that means that ``audio_length`` seconds have passed since we
+        started recording the file.
+
+        We detect created files using a watchdog on the ``data_dir``.
+
+        Args:
+            audio_dir: Directory to save audio files in
+            audio_length: Length of each audio file (in seconds)
+            output_queue: Queue to push paths of audio files to
         """
 
-        self.start_sox_subprocess(duration)
+        self.start_sox_subprocess(audio_length)
         self.start_watchdog()
 
     def stop(self):
