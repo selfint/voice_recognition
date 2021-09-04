@@ -193,7 +193,6 @@ def file_writer(
 
 def speak_buffer(audio_buffer: np.ndarray):
     audio_buffer.tofile("sound.raw")
-    print("## speaking raw ##")
     subprocess.Popen(
         "play -r 16k -b 16 -e signed-integer -q sound.raw",
         shell=True,
@@ -201,7 +200,6 @@ def speak_buffer(audio_buffer: np.ndarray):
 
 
 def speak_wav(wav_path: Path):
-    print("## speaking .wav ##")
     subprocess.Popen(
         f"play -q {wav_path.as_posix()}",
         shell=True,
