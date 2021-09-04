@@ -58,7 +58,7 @@ def load_raw(raw_file: Path) -> np.ndarray:
         raw_file: Path to raw audio file
 
     Returns:
-        np.ndarray: Raw audio buffer in file
+        np.ndarray: Raw audio content as a numpy array
     """
 
     with raw_file.open("rb") as audio_file:
