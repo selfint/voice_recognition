@@ -148,11 +148,62 @@ def audio_bucketer(
             time.sleep(0.5)
 
 
+def file_writer(
+    location: Path,
+    audio_buffers: Deque[np.ndarray],
+    output_queue: Deque[Path]
+):
+    """Write audio buffers to files and push their filename to ``output_queue``
+
+    Take the raw bytes of each numpy array in the ``audio_buffers`` queue,
+    write them to a temporary file, then use sox to convert the raw audio
+    to a .wav file. The .wav files will be save at the given ``location``.
+
+    Args:
+        location: Path to save all .wav files in
+        audio_buffers: Queue with buffers to write to .wav files
+        output_queue: Queue to push .wav filenames to
+    """
+
+    print("File writer started")
+
+    count = 0
+    with tempfile.TemporaryDirectory() as temp_dir:
+        while True:
+            if audio_buffers:
+                buffer = audio_buffers.pop()
+                temp_filename = f"{temp_dir}/sound{count:03}.raw"
+                buffer.tofile(temp_filename)
+                count += 1
+
+                wav_filename = Path(temp_filename).with_suffix(".wav").name
+                wav_path = location / wav_filename
+                convert_cmd = (
+                    f"sox -r 16k -b 16 -e signed-integer {temp_filename}"
+                    f" {wav_path.as_posix()}"
+                )
+                subprocess.Popen(convert_cmd, shell=True).wait()
+                Path(temp_filename).unlink()
+
+                speak_wav(wav_path)
+                output_queue.append(wav_path)
+
+            time.sleep(0.5)
+
+
 def speak_buffer(audio_buffer: np.ndarray):
     audio_buffer.tofile("sound.raw")
     print("## speaking ##")
     subprocess.Popen(
         "play -r 16k -b 16 -e signed-integer -q sound.raw",
+        shell=True,
+    )
+
+
+def speak_wav(wav_path: Path):
+    print("## speaking .wav ##")
+    subprocess.Popen(
+        f"play -q {wav_path.as_posix()}",
         shell=True,
     )
 
