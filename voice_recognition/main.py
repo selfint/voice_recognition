@@ -224,12 +224,20 @@ def recognizer(
 
     print("Recognizer started")
     while True:
-        stt.stt_from_queue_to_queue(
-            audio_buffers,
-            output_queue,
-            greedy=True,
-            pop=True,
-        )
+        buffer = []
+        while audio_buffers:
+            buffer.append(audio_buffers.popleft())
+
+        if len(buffer) == 0:
+            continue
+
+        # using a single buffer is faster than using a list of buffers
+        # TODO: is it though?
+        if len(buffer) == 1:
+            buffer = buffer[0]
+
+        text = stt.stt(buffer)
+        output_queue.append(text)
 
         time.sleep(0.5)
 
