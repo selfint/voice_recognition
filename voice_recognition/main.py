@@ -119,6 +119,7 @@ def audio_bucketer(
     print("Audio bucketer started")
 
     audio_buffer = np.array([])
+    max_buffer_size = SoundDetector.ms_to_byte_index(5000, 16000, 16)
 
     while True:
         if audio_buffers:
@@ -134,22 +135,17 @@ def audio_bucketer(
                 new_start = end
 
                 # do not push the last sound if it is not finished yet
-                if end == len(audio_buffer):
+                if end < len(audio_buffer):
+                    output_queue.append(sound)
+                # unless it is longer than the maximum buffer size
+                elif end - start >= max_buffer_size:
+                    output_queue.append(sound)
+                # if it is not longer then keep it
+                else:
                     new_start = start
-
-                    # this also means that it is the last sound and we can break
-                    break
-
-                output_queue.append(sound)
 
             # remove all parts of the buffer that have been processed
             audio_buffer = audio_buffer[new_start:].copy()
-
-            max_buffer_size = SoundDetector.ms_to_byte_index(10000, 16000, 16)
-            if len(audio_buffer) >= max_buffer_size:
-                sound = np.frombuffer(audio_buffer.tobytes(), dtype=np.int16)
-                output_queue.append(sound)
-                audio_buffer = np.array([])
 
             time.sleep(0.5)
 
