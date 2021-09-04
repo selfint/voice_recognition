@@ -251,7 +251,7 @@ def run_continuous_asynchronously():
     text_queue: Deque[str] = deque()
 
     stt = SpeechToText(MODEL, SCORER)
-    sd = SoundDetector(-48, 1000)
+    sd = SoundDetector(-48, 250)
     transcript = Path("transcript.txt")
 
     file_loader_process = Process(
