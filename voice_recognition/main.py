@@ -89,7 +89,7 @@ def file_loader(
     print("File loader started")
     while True:
         if audio_files:
-            audio_file = audio_files.pop()
+            audio_file = audio_files.popleft()
             audio_buffer = load_func(audio_file, dtype)
             if not keep_file:
                 audio_file.unlink()
@@ -123,7 +123,7 @@ def audio_bucketer(
     while True:
         if audio_buffers:
             # append next buffer to the audio buffer
-            next_buffer = audio_buffers.pop()
+            next_buffer = audio_buffers.popleft()
             audio_buffer = np.concatenate((audio_buffer, next_buffer))
 
             sounds = sd.detect_sound(audio_buffer, keep_silence=True)
@@ -175,7 +175,7 @@ def file_writer(
     with tempfile.TemporaryDirectory() as temp_dir:
         while True:
             if audio_buffers:
-                buffer = audio_buffers.pop()
+                buffer = audio_buffers.popleft()
                 temp_filename = f"{temp_dir}/sound{count:03}.raw"
                 buffer.tofile(temp_filename)
                 count += 1
@@ -299,7 +299,7 @@ def run_continuous_asynchronously():
                     # print(f"Text: {list(text_queue)!r}")
 
                     while text_queue:
-                        text = text_queue.pop()
+                        text = text_queue.popleft()
                         print(f"{text!r}")
                         text_file.write(text + "\n")
 

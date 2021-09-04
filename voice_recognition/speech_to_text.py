@@ -82,13 +82,13 @@ class SpeechToText:
             if greedy and pop:
                 audio_buffer = []
                 while input_queue:
-                    audio_buffer.append(input_queue.pop())
+                    audio_buffer.append(input_queue.popleft())
             elif greedy and not pop:
                 audio_buffer = list(input_queue)
             elif not greedy and pop:
-                audio_buffer = input_queue.pop()
+                audio_buffer = input_queue.popleft()
             else:
-                audio_buffer = input_queue[-1]
+                audio_buffer = input_queue[0]
 
             if isinstance(audio_buffer, list) and len(audio_buffer) == 1:
                 audio_buffer = audio_buffer[0]
