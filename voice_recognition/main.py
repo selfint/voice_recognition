@@ -96,7 +96,7 @@ def file_loader(
 
             output_queue.append(audio_buffer)
 
-            time.sleep(0.5)
+        time.sleep(0.5)
 
 
 def audio_bucketer(
@@ -147,7 +147,7 @@ def audio_bucketer(
             # remove all parts of the buffer that have been processed
             audio_buffer = audio_buffer[new_start:].copy()
 
-            time.sleep(0.5)
+        time.sleep(0.5)
 
 
 def file_writer(
