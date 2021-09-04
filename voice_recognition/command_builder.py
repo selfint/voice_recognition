@@ -1,8 +1,8 @@
-from typing import List, Optional
 import re
+from typing import List, Optional
 
 
-class CommandBuilder():
+class CommandBuilder:
     def __init__(self, start_kw: str, end_kw: str) -> None:
         self._start_kw = start_kw
         self._end_kw = end_kw
@@ -46,4 +46,3 @@ class CommandBuilder():
         """
 
         return cmd.strip()
-

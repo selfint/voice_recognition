@@ -4,6 +4,7 @@ import time
 from collections import deque
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import numpy as np
 
 from voice_recognition.sox_recorder import SoxRecorder

@@ -2,12 +2,7 @@ from voice_recognition.command_builder import CommandBuilder
 
 
 def test_build_command():
-    texts = [
-        "start command",
-        "random test text",
-        "that has a command",
-        "end command"
-    ]
+    texts = ["start command", "random test text", "that has a command", "end command"]
 
     expected_command = "random test text that has a command"
 

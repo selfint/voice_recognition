@@ -14,17 +14,14 @@ def test_detect_silence():
     sound = ratio_to_db(0.5) * max_audio_strength
     silence = ratio_to_db(0.0) * max_audio_strength
     audio = np.array(
-          [sound]   * one_second_bytes      # 0.00 -- 1.00
+        [sound] * one_second_bytes  # 0.00 -- 1.00
         + [silence] * quarter_second_bytes  # 1.00 -- 1.25
-        + [sound]   * one_second_bytes      # 1.25 -- 2.25
-        + [silence] * half_second_bytes     # 2.25 -- 2.75
-        + [sound]   * one_second_bytes      # 2.75 -- 3.75
+        + [sound] * one_second_bytes  # 1.25 -- 2.25
+        + [silence] * half_second_bytes  # 2.25 -- 2.75
+        + [sound] * one_second_bytes  # 2.75 -- 3.75
     )
 
-    sd = SoundDetector(
-        silence_threshold=-16,
-        min_silence_length=250
-    )
+    sd = SoundDetector(silence_threshold=-16, min_silence_length=250)
 
     extracted_parts = sd.detect_sound(audio, keep_silence=True)
     assert len(extracted_parts) == 3

@@ -1,14 +1,15 @@
 import subprocess
 import tempfile
 import time
-from voice_recognition.sound_detector import SoundDetector
 import wave
 from collections import deque
 from multiprocessing.dummy import Process
 from pathlib import Path
-from typing import Callable, Deque, Optional
+from typing import Callable, Deque
 
 import numpy as np
+
+from voice_recognition.sound_detector import SoundDetector
 from voice_recognition.sox_recorder import SoxRecorder
 from voice_recognition.speech_to_text import SpeechToText
 
@@ -49,6 +50,7 @@ def load_wav(wav_file: Path) -> np.ndarray:
 
     return audio
 
+
 def load_raw(raw_file: Path) -> np.ndarray:
     """Load raw audio file into a numpy array
 
@@ -68,7 +70,7 @@ def load_raw(raw_file: Path) -> np.ndarray:
 def file_loader(
     load_func: Callable[[Path], np.ndarray],
     audio_files: Deque[Path],
-    output_queue: Deque[np.ndarray]
+    output_queue: Deque[np.ndarray],
 ):
     """
     Load WAV files in audio files queue into audio buffers queue.
@@ -123,14 +125,11 @@ def audio_bucketer(
             new_start = 0
             for start, end in sounds:
                 speak_buffer(audio_buffer[start:end])
-                sound = np.frombuffer(
-                    audio_buffer[start:end].tobytes(),
-                    dtype=np.int16
-                )
+                sound = np.frombuffer(audio_buffer[start:end].tobytes(), dtype=np.int16)
                 new_start = end
 
                 # do not push the last sound if it is not finished yet
-                #if end == len(audio_buffer):
+                # if end == len(audio_buffer):
                 #    new_start = start
 
                 #    # this also means that it is the last sound and we can break
@@ -149,6 +148,7 @@ def audio_bucketer(
 
             time.sleep(0.5)
 
+
 def speak_buffer(audio_buffer: np.ndarray):
     audio_buffer.tofile("sound.raw")
     print("## speaking ##")
@@ -156,8 +156,7 @@ def speak_buffer(audio_buffer: np.ndarray):
         "play -r 16k -b 16 -e signed-integer -q sound.raw",
         shell=True,
     )
-    #print(speaker.communicate())
-
+    # print(speaker.communicate())
 
 
 def recognizer(
@@ -221,10 +220,10 @@ def run_continuous_asynchronously():
         try:
             while True:
                 # print queue states
-                #print(f"Files: {list(audio_files_queue)!r}")
-                #print(f"Audio: {list(audio_buffers_queue)!r}")
-                #print(f"Buckets: {list(audio_buckets_queue)!r}")
-                #print(f"Text: {list(text_queue)!r}")
+                # print(f"Files: {list(audio_files_queue)!r}")
+                # print(f"Audio: {list(audio_buffers_queue)!r}")
+                # print(f"Buckets: {list(audio_buckets_queue)!r}")
+                # print(f"Text: {list(text_queue)!r}")
 
                 while text_queue:
                     print(f"{text_queue.pop()!r}")

@@ -1,4 +1,5 @@
 from typing import List
+
 import numpy as np
 from pydub.audio_segment import AudioSegment
 from pydub.silence import detect_nonsilent
@@ -15,9 +16,7 @@ class SoundDetector:
         )
 
     def detect_sound(
-        self,
-        audio: np.ndarray,
-        keep_silence: bool = True
+        self, audio: np.ndarray, keep_silence: bool = True
     ) -> List[np.ndarray]:
         """Get all parts in audio that are surrounded by silence.
 
@@ -51,10 +50,7 @@ class SoundDetector:
 
             if keep_silence:
                 byte_start = max(0, byte_start - self._min_silence_length_bytes)
-                byte_end = min(
-                    len(audio),
-                    byte_end + self._min_silence_length_bytes
-                )
+                byte_end = min(len(audio), byte_end + self._min_silence_length_bytes)
 
             parts.append((byte_start, byte_end))
 
@@ -73,7 +69,7 @@ class SoundDetector:
 
         For example, if the sample rate is 16k, and the bit-depth is 16:
         - Each sample represents 1/16000 of a second. Or in other words,
-          there are 16000 samples per second. 
+          there are 16000 samples per second.
         - Each sample is 16 / 8 = 2 bytes.
 
         So to convert from a millisecond to a byte_index we do the following:
@@ -102,5 +98,3 @@ class SoundDetector:
         byte_index = int(ms * sample_rate_per_ms * bytes_per_sample / 8)
 
         return byte_index
-
-

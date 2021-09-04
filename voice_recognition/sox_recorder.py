@@ -1,9 +1,9 @@
+import shlex
 import subprocess
 from pathlib import Path
 from typing import Deque, Optional
-import shlex
-import numpy as np
 
+import numpy as np
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -39,10 +39,7 @@ def _create_sox_record_cmd(
     """
 
     return SOX_RECORD_CMD.format(
-        audio_type,
-        record_dir,
-        audio_filename_template,
-        duration
+        audio_type, record_dir, audio_filename_template, duration
     )
 
 
@@ -61,12 +58,9 @@ def _create_sox_record_once_cmd(duration: float) -> str:
     return SOX_RECORD_ONCE_CMD.format(duration)
 
 
-
 class SoxRecorder:
     def __init__(
-        self,
-        data_dir: Optional[Path] = None,
-        output_queue: Optional[Deque] = None
+        self, data_dir: Optional[Path] = None, output_queue: Optional[Deque] = None
     ) -> None:
         self._data_dir = data_dir
         self._output_queue = output_queue
@@ -167,7 +161,6 @@ class SoxRecorder:
             raise RuntimeError("SoX returned non-zero status: {}".format(e.stderr))
 
         return np.frombuffer(output, np.int16)
-
 
 
 class OnCreateHandler(FileSystemEventHandler):
