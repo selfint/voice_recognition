@@ -152,11 +152,10 @@ def audio_bucketer(
 def speak_buffer(audio_buffer: np.ndarray):
     audio_buffer.tofile("sound.raw")
     print("## speaking ##")
-    speaker = subprocess.Popen(
+    subprocess.Popen(
         "play -r 16k -b 16 -e signed-integer -q sound.raw",
         shell=True,
     )
-    # print(speaker.communicate())
 
 
 def recognizer(
