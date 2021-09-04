@@ -129,7 +129,7 @@ def audio_bucketer(
 
             sounds = sd.detect_sound(audio_buffer, keep_silence=True)
 
-            new_start = 0
+            new_start = len(audio_buffer)
             for start, end in sounds:
                 sound = np.frombuffer(audio_buffer[start:end].tobytes(), dtype=np.int16)
                 new_start = end
