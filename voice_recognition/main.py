@@ -30,11 +30,12 @@ def start_sox(audio_dir: Path, duration: float, audio_queue: Deque[Path]):
     return sr
 
 
-def load_wav(wav_file: Path) -> np.ndarray:
+def load_wav(wav_file: Path, dtype: np.dtype) -> np.ndarray:
     """Load .wav file into a numpy array
 
     Args:
         wav_file (Path): .wav file to load into numpy array
+        dtype: Dtype to use in numpy array
 
     Returns:
         np.array: .wav file content as a numpy array
@@ -45,47 +46,53 @@ def load_wav(wav_file: Path) -> np.ndarray:
         fin = wave.open(str(wav_file.resolve()), "rb")
     except EOFError:
         return np.zeros(16000)
-    audio = np.frombuffer(fin.readframes(fin.getnframes()))
+    audio = np.frombuffer(fin.readframes(fin.getnframes()), dtype=dtype)
     fin.close()
 
     return audio
 
 
-def load_raw(raw_file: Path) -> np.ndarray:
+def load_raw(raw_file: Path, dtype: np.dtype) -> np.ndarray:
     """Load raw audio file into a numpy array
 
     Args:
         raw_file: Path to raw audio file
+        dtype: Dtype to use in numpy array
 
     Returns:
         np.ndarray: Raw audio content as a numpy array
     """
 
     with raw_file.open("rb") as audio_file:
-        audio_buffer = np.frombuffer(audio_file.read())
+        audio_buffer = np.frombuffer(audio_file.read(), dtype=dtype)
 
     return audio_buffer
 
 
 def file_loader(
-    load_func: Callable[[Path], np.ndarray],
+    load_func: Callable[[Path, np.dtype], np.ndarray],
+    dtype: np.dtype,
     audio_files: Deque[Path],
     output_queue: Deque[np.ndarray],
+    keep_file: bool = False
 ):
     """
     Load WAV files in audio files queue into audio buffers queue.
     Args:
         load_func: Function to call to load the file into an audio buffer
+        dtype: Dtype to use in numpy array
         audio_files_queue: Queue containing paths of audio files to load
         audio_buffers_queue: Queue to upload audio buffers to
+        keep_file: Whether to not delete the file after loading it
     """
 
     print("File loader started")
     while True:
         if audio_files:
             audio_file = audio_files.pop()
-            audio_buffer = load_func(audio_file)
-            audio_file.unlink()
+            audio_buffer = load_func(audio_file, dtype)
+            if not keep_file:
+                audio_file.unlink()
 
             output_queue.append(audio_buffer)
 
@@ -123,7 +130,6 @@ def audio_bucketer(
 
             new_start = 0
             for start, end in sounds:
-                speak_buffer(audio_buffer[start:end])
                 sound = np.frombuffer(audio_buffer[start:end].tobytes(), dtype=np.int16)
                 new_start = end
 
@@ -193,7 +199,7 @@ def file_writer(
 
 def speak_buffer(audio_buffer: np.ndarray):
     audio_buffer.tofile("sound.raw")
-    print("## speaking ##")
+    print("## speaking raw ##")
     subprocess.Popen(
         "play -r 16k -b 16 -e signed-integer -q sound.raw",
         shell=True,
@@ -238,13 +244,17 @@ def run_continuous_asynchronously():
     audio_files_queue: Deque[Path] = deque()
     audio_buffers_queue: Deque[np.ndarray] = deque()
     audio_buckets_queue: Deque[np.ndarray] = deque()
+    wav_files_queue: Deque[Path] = deque()
+    wav_audio_queue: Deque[np.ndarray] = deque()
     text_queue: Deque[str] = deque()
 
     stt = SpeechToText(MODEL, SCORER)
     sd = SoundDetector(-48, 250)
+    transcript = Path("transcript.txt")
 
     file_loader_process = Process(
-        target=file_loader, args=(load_raw, audio_files_queue, audio_buffers_queue)
+        target=file_loader,
+        args=(load_raw, np.float64, audio_files_queue, audio_buffers_queue)
     )
     file_loader_process.daemon = True
 
@@ -254,8 +264,21 @@ def run_continuous_asynchronously():
     )
     audio_bucketer_process.daemon = True
 
+    file_writer_process = Process(
+        target=file_writer,
+        args=(Path("sounds"), audio_buckets_queue, wav_files_queue),
+    )
+    file_writer_process.daemon = True
+
+    wav_loader_process = Process(
+        target=file_loader,
+        args=(load_wav, np.int16, wav_files_queue, wav_audio_queue),
+        kwargs={"keep_file": True},
+    )
+    wav_loader_process.daemon = True
+
     recognizer_process = Process(
-        target=recognizer, args=(stt, audio_buckets_queue, text_queue)
+        target=recognizer, args=(stt, wav_audio_queue, text_queue)
     )
     recognizer_process.daemon = True
 
@@ -264,20 +287,25 @@ def run_continuous_asynchronously():
         sr = start_sox(Path(audio_dir), 3, audio_files_queue)
         file_loader_process.start()
         audio_bucketer_process.start()
+        file_writer_process.start()
+        wav_loader_process.start()
         recognizer_process.start()
 
         try:
-            while True:
-                # print queue states
-                # print(f"Files: {list(audio_files_queue)!r}")
-                # print(f"Audio: {list(audio_buffers_queue)!r}")
-                # print(f"Buckets: {list(audio_buckets_queue)!r}")
-                # print(f"Text: {list(text_queue)!r}")
+            with transcript.open("a") as text_file:
+                while True:
+                    # print queue states
+                    # print(f"Files: {list(audio_files_queue)!r}")
+                    # print(f"Audio: {list(audio_buffers_queue)!r}")
+                    # print(f"Buckets: {list(audio_buckets_queue)!r}")
+                    # print(f"Text: {list(text_queue)!r}")
 
-                while text_queue:
-                    print(f"{text_queue.pop()!r}")
+                    while text_queue:
+                        text = text_queue.pop()
+                        print(f"{text!r}")
+                        text_file.write(text + "\n")
 
-                time.sleep(0.5)
+                    time.sleep(0.5)
 
         except KeyboardInterrupt:
             sr.stop()
