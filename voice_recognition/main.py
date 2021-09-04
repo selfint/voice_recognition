@@ -74,7 +74,7 @@ def file_loader(
     dtype: np.dtype,
     audio_files: Deque[Path],
     output_queue: Deque[np.ndarray],
-    keep_file: bool = False
+    keep_file: bool = False,
 ):
     """
     Load WAV files in audio files queue into audio buffers queue.
@@ -135,10 +135,10 @@ def audio_bucketer(
 
                 # do not push the last sound if it is not finished yet
                 if end == len(audio_buffer):
-                   new_start = start
+                    new_start = start
 
-                   # this also means that it is the last sound and we can break
-                   break
+                    # this also means that it is the last sound and we can break
+                    break
 
                 output_queue.append(sound)
 
@@ -155,9 +155,7 @@ def audio_bucketer(
 
 
 def file_writer(
-    location: Path,
-    audio_buffers: Deque[np.ndarray],
-    output_queue: Deque[Path]
+    location: Path, audio_buffers: Deque[np.ndarray], output_queue: Deque[Path]
 ):
     """Write audio buffers to files and push their filename to ``output_queue``
 
@@ -254,7 +252,7 @@ def run_continuous_asynchronously():
 
     file_loader_process = Process(
         target=file_loader,
-        args=(load_raw, np.float64, audio_files_queue, audio_buffers_queue)
+        args=(load_raw, np.float64, audio_files_queue, audio_buffers_queue),
     )
     file_loader_process.daemon = True
 
