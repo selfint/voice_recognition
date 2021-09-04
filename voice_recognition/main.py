@@ -120,7 +120,6 @@ def audio_bucketer(
             audio_buffer = np.concatenate((audio_buffer, next_buffer))
 
             sounds = sd.detect_sound(audio_buffer, keep_silence=True)
-            print(sounds)
 
             new_start = 0
             for start, end in sounds:
