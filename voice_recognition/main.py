@@ -143,7 +143,8 @@ def audio_bucketer(
             max_buffer_size = SoundDetector.ms_to_byte_index(10000, 16000, 16)
             if len(audio_buffer) >= max_buffer_size:
                 speak_buffer(audio_buffer)
-                output_queue.append(np.array(audio_buffer, dtype=np.int16))
+                sound = np.array(audio_buffer, dtype=np.int16)
+                output_queue.append(sound)
                 audio_buffer = np.array([])
 
             time.sleep(0.5)
