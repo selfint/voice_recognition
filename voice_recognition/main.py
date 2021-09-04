@@ -129,11 +129,11 @@ def audio_bucketer(
                 new_start = end
 
                 # do not push the last sound if it is not finished yet
-                # if end == len(audio_buffer):
-                #    new_start = start
+                if end == len(audio_buffer):
+                   new_start = start
 
-                #    # this also means that it is the last sound and we can break
-                #    break
+                   # this also means that it is the last sound and we can break
+                   break
 
                 output_queue.append(sound)
 
